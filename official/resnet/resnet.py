@@ -416,6 +416,24 @@ def learning_rate_with_decay(
   return learning_rate_fn
 
 
+def learning_rate_with_warm_restarts(batch_size, num_images, t_0,
+                                     t_mul=2.0, m_mul=0.0, alpha=0.0):
+  """Get a learning rate decay with warm restarts.
+
+  Args:
+    batch_size: the number of examples processed in each training batch.
+  """
+  first_decay_steps = num_images / batch_size * t_0
+
+  def learning_rate_fn(global_step):
+    global_step = tf.cast(global_step, tf.int32)
+    return tf.train.cosine_decay_restarts(0.1, global_step,
+                                          first_decay_steps=first_decay_steps,
+                                          t_mul=t_mul,
+                                          m_mul=m_mul, alpha=alpha)
+  return learning_rate_fn
+
+
 def resnet_model_fn(features, labels, mode, model_class,
                     resnet_size, weight_decay, learning_rate_fn, momentum,
                     data_format, loss_filter_fn=None):
